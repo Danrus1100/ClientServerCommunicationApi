@@ -1,0 +1,4 @@
+name: ShbUtils
+version: '1.0'
+main: com.danrus.csc.CscServer
+api-version: '${minecraft_version}'

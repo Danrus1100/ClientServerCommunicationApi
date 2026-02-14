@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "Client-Server Communication API",
+  "description": "Communication API for Fabric client and Paper server",
+  "authors": [
+    "Danrus110_"
+  ],
+  "license": "ARR",
+  "icon": "assets/csc/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.danrus.csc.CscClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.2",
+    "minecraft": "~${mc_version}",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
