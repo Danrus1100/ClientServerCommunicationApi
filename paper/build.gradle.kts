@@ -56,7 +56,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
             groupId = prop("pub.group")
-            artifactId = "csc-paper-${prop("deps.mc")}"
+            artifactId = "csc-${project.name}"
         }
     }
     repositories {

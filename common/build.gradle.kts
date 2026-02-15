@@ -35,7 +35,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "csc-common"
+            artifactId = "csc-${project.name}"
         }
     }
     repositories {
