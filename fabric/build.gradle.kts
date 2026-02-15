@@ -15,7 +15,6 @@ fun prop(name: String): String {
         ?: throw IllegalArgumentException("Missing property: $name")
 }
 
-group = "com.danrus"
 version = prop("mod.version")
 
 base {
@@ -46,8 +45,14 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${prop("deps.fapi")}")
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
-    implementation(project(sc.node.sibling("common")?.project?.path ?: error("Sibling project 'common' not found")))
-    include(project(sc.node.sibling("common")?.project?.path ?: error("Sibling project 'common' not found")))
+    val commonProjectPath = sc.node.sibling("common")?.project?.path ?: error("Sibling project 'common' not found")
+
+    // Создаем ссылку на проект с конфигурацией namedElements
+    implementation(project(commonProjectPath))
+
+    // Для include (включения в jar) используем просто путь к проекту.
+    // Loom сам выберет нужный артефакт (remapJar или classes), не создавая цикла.
+    include(project(commonProjectPath))
 }
 
 tasks {
@@ -79,6 +84,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            groupId = prop("pub.group")
             artifactId = "csc-fabric-${prop("deps.mc")}"
         }
     }

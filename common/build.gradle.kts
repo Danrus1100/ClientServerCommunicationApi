@@ -12,7 +12,7 @@ fun prop(name: String): String {
         ?: throw IllegalArgumentException("Missing property: $name")
 }
 
-group = "com.danrus"
+group = "com.danrus.csc"
 version = "1.0.1"
 
 repositories {
@@ -26,6 +26,9 @@ dependencies {
 java {
     withSourcesJar()
     withJavadocJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 publishing {

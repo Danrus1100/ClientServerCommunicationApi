@@ -16,7 +16,7 @@ fun prop(name: String) : String {
         ?: throw IllegalArgumentException("Missing property: $name")
 }
 
-group = "com.danrus"
+group = "com.danrus.csc"
 version = "1.0.1"
 
 base {
@@ -28,10 +28,15 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
+val shadowImplementation: Configuration by configurations.creating
+
 dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     paperweight.paperDevBundle("${prop("deps.mc")}-R0.1-SNAPSHOT")
-    implementation(project(sc.node.sibling("common")?.project?.path ?: error("Sibling project 'common' not found")))
+
+    val commonProject = sc.node.sibling("common")?.project?.path ?: error("Sibling project 'common' not found")
+    compileOnly(project(commonProject))
+    shadowImplementation(project(commonProject))
 }
 
 java {
@@ -40,6 +45,11 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
     withJavadocJar()
+}
+
+configurations {
+    compileClasspath.get().extendsFrom(shadowImplementation)
+    runtimeClasspath.get().extendsFrom(shadowImplementation)
 }
 
 publishing {
@@ -67,9 +77,10 @@ tasks {
     }
     shadowJar {
         archiveClassifier.set("shaded")
+        configurations = listOf(shadowImplementation)
         mergeServiceFiles()
     }
-    build {
+    assemble {
         dependsOn(shadowJar)
     }
     processResources {
