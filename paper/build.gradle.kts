@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("maven-publish")
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
     id("com.gradleup.shadow") version "9.3.1"
@@ -37,6 +38,27 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
     toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifactId = "csc-paper-${prop("deps.mc")}"
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${System.getenv("GITHUB_REPOSITORY") ?: "Danrus1100/ClientServerCommunicationApi"}")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: ""
+            }
+        }
+    }
 }
 
 tasks {

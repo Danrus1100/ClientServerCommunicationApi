@@ -2,6 +2,7 @@ import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     id("java")
+    id("maven-publish")
     id("net.fabricmc.fabric-loom-remap") version "1.14-SNAPSHOT"
 }
 
@@ -72,4 +73,23 @@ java {
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifactId = "csc-fabric-${prop("deps.mc")}"
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${System.getenv("GITHUB_REPOSITORY") ?: "Danrus1100/ClientServerCommunicationApi"}")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: ""
+            }
+        }
+    }
 }
