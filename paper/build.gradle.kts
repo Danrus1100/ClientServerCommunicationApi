@@ -16,7 +16,6 @@ fun prop(name: String) : String {
         ?: throw IllegalArgumentException("Missing property: $name")
 }
 
-group = "com.danrus.csc"
 version = "1.0.1"
 
 base {
@@ -56,6 +55,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            groupId = prop("pub.group")
             artifactId = "csc-paper-${prop("deps.mc")}"
         }
     }
