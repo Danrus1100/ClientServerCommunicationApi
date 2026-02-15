@@ -1,18 +1,26 @@
 package com.danrus.csc.api.packet;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CscPackets {
-    private static final Map<String, com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket>> BY_ID = new HashMap<>();
-    private static final Map<Class<? extends com.danrus.csc.api.packet.CscPacket>, com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket>> BY_CLASS = new HashMap<>();
-    private static final Map<Short, com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket>> BY_NUM_ID = new HashMap<>();
+    private static final Map<String, CscPacketType<? extends CscPacket>> BY_ID = new HashMap<>();
+    private static final Map<Class<? extends CscPacket>, CscPacketType<? extends CscPacket>> BY_CLASS = new HashMap<>();
+    private static final Map<Short, CscPacketType<? extends CscPacket>> BY_NUM_ID = new HashMap<>();
     private static final Map<String, Short> ID_TO_NUM_ID = new HashMap<>();
-    private static short nextId = Short.MIN_VALUE;
 
-    public static <P extends com.danrus.csc.api.packet.CscPacket> com.danrus.csc.api.packet.CscPacketType<P> register(String id, Class<P> packetClass, com.danrus.csc.api.packet.CscPacketFactory<P> factory) {
-        short numId = ID_TO_NUM_ID.getOrDefault(id, nextId++);
-        com.danrus.csc.api.packet.CscPacketType<P> packetType = new com.danrus.csc.api.packet.CscPacketType<>(numId, packetClass, factory);
+    public static <P extends CscPacket> CscPacketType<P> register(String id, Class<P> packetClass, CscPacketFactory<P> factory) {
+        short numId = generateCrc16(id);
+        if (BY_NUM_ID.containsKey(numId)) {
+            CscPacketType<?> existing = BY_NUM_ID.get(numId);
+            if (!existing.tId().equals(id)) {
+                throw new IllegalStateException(String.format(
+                        "CRITICAL COLLISION: Packets '%s' and '%s' both mapped to ID %d. Rename one of them!",
+                        id, existing.tId(), numId));
+            }
+        }
+        CscPacketType<P> packetType = new CscPacketType<>(numId, id, packetClass, factory);
         BY_ID.put(id, packetType);
         BY_CLASS.put(packetClass, packetType);
         BY_NUM_ID.put(numId, packetType);
@@ -20,16 +28,31 @@ public class CscPackets {
         return packetType;
     }
 
-    public static com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket> getById(String id) {
+    private static short generateCrc16(String text) {
+        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        int crc = 0xFFFF;
+
+        for (byte b : bytes) {
+            for (int i = 0; i < 8; i++) {
+                boolean bit = ((b >> (7 - i) & 1) == 1);
+                boolean c15 = ((crc >> 15 & 1) == 1);
+                crc <<= 1;
+                if (c15 ^ bit) crc ^= 0x1021;
+            }
+        }
+        return (short) (crc & 0xFFFF);
+    }
+
+    public static CscPacketType<? extends CscPacket> getById(String id) {
         return BY_ID.get(id);
     }
 
     @SuppressWarnings("unchecked")
-    public static <P extends com.danrus.csc.api.packet.CscPacket> com.danrus.csc.api.packet.CscPacketType<P> getByClass(Class<P> packetClass) {
-        return (com.danrus.csc.api.packet.CscPacketType<P>) BY_CLASS.get(packetClass);
+    public static <P extends CscPacket> CscPacketType<P> getByClass(Class<P> packetClass) {
+        return (CscPacketType<P>) BY_CLASS.get(packetClass);
     }
 
-    public static com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket> getByNumId(short numId) {
+    public static CscPacketType<? extends CscPacket> getByNumId(short numId) {
         return BY_NUM_ID.get(numId);
     }
 
@@ -37,8 +60,8 @@ public class CscPackets {
         return ID_TO_NUM_ID.get(id);
     }
 
-    public static com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket> getByIdOrThrow(String id) {
-        com.danrus.csc.api.packet.CscPacketType<? extends com.danrus.csc.api.packet.CscPacket> packetType = getById(id);
+    public static CscPacketType<? extends CscPacket> getByIdOrThrow(String id) {
+        CscPacketType<? extends CscPacket> packetType = getById(id);
         if (packetType == null) {
             throw new IllegalArgumentException("No packet type registered with id: " + id);
         }

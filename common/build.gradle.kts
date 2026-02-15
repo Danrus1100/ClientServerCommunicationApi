@@ -12,7 +12,7 @@ fun prop(name: String): String {
 }
 
 group = "com.danrus"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()

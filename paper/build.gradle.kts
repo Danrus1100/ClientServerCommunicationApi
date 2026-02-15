@@ -16,7 +16,7 @@ fun prop(name: String) : String {
 }
 
 group = "com.danrus"
-version = "1.0"
+version = "1.0.1"
 
 base {
     archivesName.set("csc-paper-"+prop("deps.mc"))
